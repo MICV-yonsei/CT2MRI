@@ -1,0 +1,109 @@
+# Brownian Bridge Diffusion Model Template(Pixel Space)
+runner: "BBDMRunner"
+training:
+  n_epochs: 40
+  n_steps: 150000
+  save_interval: 1
+  sample_interval: 1
+  validation_interval: 1
+  accumulate_grad_batches: 2
+
+testing:
+  clip_denoised: True
+  sample_num: 1
+
+data:
+  dataset_name: 'BraTS'
+  dataset_type: 'BraTS_t2f_t1n_aligned_global_hist_context'
+  dataset_config:
+    dataset_path: '/root_dir/datasets'
+    hist_type:  # 'colin', 'avg'
+    plane: 'axial'
+    image_size: 176
+    channels: 3
+    to_normal: True
+    flip: True
+  train:
+    batch_size: 16
+    shuffle: True
+  val:
+    batch_size: 16
+    shuffle: True
+  test:
+    batch_size: 16
+    shuffle: False
+
+model:
+  model_name: "${date}_${HW}_BBDM_${plane}_DDIM" # part of result path
+  model_type: "BBDM" # LBBDM
+  latent_before_quant_conv: False
+  normalize_latent: False
+  only_load_latent_mean_std: False
+  # model_load_path:  # model checkpoint path
+  # optim_sche_load_path:  # optimizer scheduler checkpoint path
+
+  EMA:
+    use_ema: True
+    ema_decay: 0.995
+    update_ema_interval: 8 # step
+    start_ema_step: 30000
+
+  CondStageParams:
+    n_stages: 2
+    in_channels: 3
+    out_channels: 3
+
+  BB:
+    optimizer:
+      weight_decay: 0.000
+      optimizer: 'Adam'
+      lr: 1.e-4
+      beta1: 0.9
+
+    lr_scheduler:
+      factor: 0.5
+      patience: 3000
+      threshold: 0.0001
+      cooldown: 3000
+      min_lr: 5.e-7
+
+    params:
+      mt_type: 'linear' # options {'linear', 'sin'}
+      objective: 'grad' # options {'grad', 'noise', 'ysubx'}
+      loss_type: 'l1' # options {'l1', 'l2'}
+
+      skip_sample: True
+      sample_type: 'linear' # options {"linear", "sin"}
+      sample_step: 50
+
+      num_timesteps: 1000 # timesteps
+      eta: 0.0 # DDIM reverse process eta
+      max_var: 1.0 # maximum variance
+
+      inference_type: 'normal' # options {'normal', 'average', 'ISTA_average', 'ISTA_mid'}
+      num_ISTA_step: 1
+      ISTA_step_size: 2.0
+      
+      UNetParams:
+        image_size: 176
+        in_channels: 6
+        model_channels: 128
+        out_channels: 3
+        num_res_blocks: 2
+        attention_resolutions: !!python/tuple
+          - 32
+          - 16
+          - 8
+        channel_mult: !!python/tuple
+          - 1
+          - 4
+          - 8
+        conv_resample: True
+        dims: 2
+        num_heads: 8
+        num_head_channels: 64
+        use_scale_shift_norm: True
+        resblock_updown: True
+        use_spatial_transformer: True
+        context_dim: 128
+        condition_key: "hist_context_y_concat" # options {"hist_context_y_concat", "SpatialRescaler", "nocond"}
