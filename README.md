@@ -2,7 +2,7 @@
 
 **Early accepted at MICCAI 2024**
 
-[[Project Page]](https://micv-yonsei.github.io/ct2mri2024/) [[paper]](https://arxiv.org/abs/2403.1) [[arXiv]](https://arxiv.org/abs/2403481) 
+[[Project Page]](https://micv-yonsei.github.io/ct2mri2024/) [[paper]](https://arxiv.org/pdf/2407.05059) [[arXiv]](https://arxiv.org/pdf/2407.05059) 
 
 ### Requirements
 
